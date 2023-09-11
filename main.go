@@ -18,7 +18,7 @@ import (
 const DiscoveryInterval = time.Hour
 
 // DiscoveryServiceTag is used in our mDNS advertisements to discover other chat peers.
-const DiscoveryServiceTag = "pubsub-chat-example"
+const DiscoveryServiceTag = "lumina-pubsub"
 
 func main() {
 	// parse some flags to set our nickname and the room to join
@@ -60,17 +60,19 @@ func main() {
 		panic(err)
 	}
 
+	print(cr)
+
 	// draw the UI
-	ui := NewChatUI(cr)
-	if err = ui.Run(); err != nil {
-		printErr("error running text UI: %s", err)
-	}
+	// ui := NewChatUI(cr)
+	// if err = ui.Run(); err != nil {
+	// 	printErr("error running text UI: %s", err)
+	// }
 }
 
 // printErr is like fmt.Printf, but writes to stderr.
-func printErr(m string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, m, args...)
-}
+// func printErr(m string, args ...interface{}) {
+// 	fmt.Fprintf(os.Stderr, m, args...)
+// }
 
 // defaultNick generates a nickname based on the $USER environment variable and
 // the last 8 chars of a peer ID.
