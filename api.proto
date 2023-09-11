@@ -1,0 +1,23 @@
+syntax = "proto3";
+package api;
+
+option go_package = "gen/api";
+
+message ChatMessage {
+    string sender_id = 1;
+    string sender_nick = 2;
+    int64 timestamp = 3;
+    string value = 4;
+}
+
+service Api {
+    rpc SendMessage (MessageRequest) returns (MessageReply) {}
+}
+
+message MessageRequest {
+    string value = 1;
+}
+  
+message MessageReply {
+    bool sent = 1;
+}

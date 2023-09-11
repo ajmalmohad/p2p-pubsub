@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/libp2p/go-libp2p/core/peer"
 
@@ -34,6 +35,7 @@ type ChatMessage struct {
 	Message    string
 	SenderID   string
 	SenderNick string
+	Timestamp  string
 }
 
 // JoinChatRoom tries to subscribe to the PubSub topic for the room name, returning
@@ -73,6 +75,7 @@ func (cr *ChatRoom) Publish(message string) error {
 		Message:    message,
 		SenderID:   cr.self.Pretty(),
 		SenderNick: cr.nick,
+		Timestamp:  time.Now().String(),
 	}
 	msgBytes, err := json.Marshal(m)
 	if err != nil {
