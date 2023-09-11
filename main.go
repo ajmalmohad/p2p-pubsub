@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"time"
 
@@ -12,6 +13,10 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/p2p/discovery/mdns"
+	"google.golang.org/grpc"
+
+	api "lumina/api"
+	apigen "lumina/gen/api"
 )
 
 // DiscoveryInterval is how often we re-publish our mDNS records.
@@ -62,17 +67,17 @@ func main() {
 
 	print(cr)
 
-	// draw the UI
-	// ui := NewChatUI(cr)
-	// if err = ui.Run(); err != nil {
-	// 	printErr("error running text UI: %s", err)
-	// }
+	// GRPC Server Starts running here
+	port := 4000
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+	if err != nil {
+		panic(err)
+	}
+	print("\nAPI started in localhost:4000")
+	grpcServer := grpc.NewServer()
+	apigen.RegisterApiServer(grpcServer, api.NewServer())
+	grpcServer.Serve(lis)
 }
-
-// printErr is like fmt.Printf, but writes to stderr.
-// func printErr(m string, args ...interface{}) {
-// 	fmt.Fprintf(os.Stderr, m, args...)
-// }
 
 // defaultNick generates a nickname based on the $USER environment variable and
 // the last 8 chars of a peer ID.
