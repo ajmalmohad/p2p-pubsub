@@ -12,7 +12,7 @@ type ApiServer struct {
 }
 
 func (api *ApiServer) SendMessage(ctx context.Context, req *apigen.SendMessageRequest) (*apigen.SendMessageReply, error) {
-	print(req.Value)
+	api.cr.Publish(req.Value)
 	return &apigen.SendMessageReply{Success: true}, nil
 }
 
