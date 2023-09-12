@@ -12,6 +12,7 @@ import (
 
 // ChatRoomBufSize is the number of incoming messages to buffer for each topic.
 const ChatRoomBufSize = 128
+const PeerJoinedBufSize = 128
 
 // ChatRoom represents a subscription to a single PubSub topic. Messages
 // can be published to the topic with ChatRoom.Publish, and received
@@ -19,6 +20,7 @@ const ChatRoomBufSize = 128
 type ChatRoom struct {
 	// Messages is a channel of messages received from other peers in the chat room
 	Messages chan *ChatMessage
+	PeerJoin chan *PeerJoin
 
 	ctx   context.Context
 	ps    *pubsub.PubSub
@@ -36,6 +38,11 @@ type ChatMessage struct {
 	SenderID   string
 	SenderNick string
 	Timestamp  string
+}
+
+// Peer Join.
+type PeerJoin struct {
+	PeerID string
 }
 
 // JoinChatRoom tries to subscribe to the PubSub topic for the room name, returning
@@ -62,6 +69,7 @@ func JoinChatRoom(ctx context.Context, ps *pubsub.PubSub, selfID peer.ID, nickna
 		nick:     nickname,
 		roomName: roomName,
 		Messages: make(chan *ChatMessage, ChatRoomBufSize),
+		PeerJoin: make(chan *PeerJoin, PeerJoinedBufSize),
 	}
 
 	// start reading messages from the subscription in a loop
@@ -100,6 +108,9 @@ func (cr *ChatRoom) readLoop() {
 		if msg.ReceivedFrom == cr.self {
 			continue
 		}
+
+		print(msg.Data)
+
 		cm := new(ChatMessage)
 		err = json.Unmarshal(msg.Data, cm)
 		if err != nil {

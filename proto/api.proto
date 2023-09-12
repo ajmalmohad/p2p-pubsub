@@ -10,6 +10,10 @@ message ChatMessage {
     string value = 4;
 }
 
+message PeerJoin {
+	string peer_id = 1; 
+}
+
 service Api {
     rpc SendMessage (SendMessageRequest) returns (SendMessageReply) {}
     rpc GetRoomParticipants(GetRoomParticipantsRequest) returns (GetRoomParticipantsResponse) {};
@@ -40,4 +44,5 @@ message SubscribeRequest {}
 message Event {
     int32 type = 1;
     ChatMessage message = 2;
+    PeerJoin peer = 3;
 }

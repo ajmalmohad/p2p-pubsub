@@ -30,6 +30,16 @@ func (api *ApiServer) GetRoomParticipants(ctx context.Context, req *apigen.GetRo
 	return &apigen.GetRoomParticipantsResponse{Participants: participants}, nil
 }
 
+// func (e *PeerJoined) MarshalToProtobuf() *apigen.Event {
+// 	return &apigen.Event{
+// 		Type: apigen.Event_PEER_JOINED,
+// 		PeerJoined: &apigen.EvtPeerJoined{
+// 			RoomName: e.RoomName,
+// 			PeerId:   e.PeerID.Pretty(),
+// 		},
+// 	}
+// }
+
 func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apigen.Api_SubscribeEventsServer) error {
 	for {
 		select {
@@ -50,6 +60,21 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 			}
 
 			// Send Messages
+			err := stream.Send(&event)
+			if err != nil {
+				log.Println(err.Error())
+			}
+		case m := <-api.cr.PeerJoin:
+			peer := apigen.PeerJoin{
+				PeerId: m.PeerID,
+			}
+
+			event := apigen.Event{
+				Type: 2,
+				Peer: &peer,
+			}
+
+			// Send Peer Join
 			err := stream.Send(&event)
 			if err != nil {
 				log.Println(err.Error())
