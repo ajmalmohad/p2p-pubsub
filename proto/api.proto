@@ -33,3 +33,5 @@ message GetRoomParticipantsRequest {}
 message GetRoomParticipantsResponse {
     repeated RoomParticipant participants = 1;
 }
+
+// Notify Through Stream that We got a message to the grpc server

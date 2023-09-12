@@ -71,6 +71,9 @@ func main() {
 
 	// GRPC Server Starts running here
 	port := *portFlag
+	if len(port) == 0 {
+		panic("No Port Specified")
+	}
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", port))
 	if err != nil {
 		panic(err)
@@ -87,7 +90,7 @@ func handleEvents(cr *chatroom.ChatRoom) {
 		select {
 		case m := <-cr.Messages:
 			// when we receive a message from the chat room, print it to the message window
-			print(m.Message)
+			print(fmt.Sprintf("\n%s: %s", m.SenderNick, m.Message))
 		}
 	}
 }
