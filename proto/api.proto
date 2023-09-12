@@ -12,24 +12,14 @@ message ChatMessage {
 
 service Api {
     rpc SendMessage (SendMessageRequest) returns (SendMessageReply) {}
-    rpc JoinRoom (JoinRoomRequest) returns (JoinRoomReply) {}
     rpc GetRoomParticipants(GetRoomParticipantsRequest) returns (GetRoomParticipantsResponse) {};
 }
 
 message SendMessageRequest {
-    string room_name = 1;
-    string value = 2;
+    string value = 1;
 }
   
 message SendMessageReply {
-    bool success = 1;
-}
-
-message JoinRoomRequest {
-    string room_name = 1;
-}
-  
-message JoinRoomReply {
     bool success = 1;
 }
 
@@ -38,9 +28,7 @@ message RoomParticipant {
     string nickname = 2;
 }
 
-message GetRoomParticipantsRequest {
-    string room_name = 1;
-}
+message GetRoomParticipantsRequest {}
 
 message GetRoomParticipantsResponse {
     repeated RoomParticipant participants = 1;

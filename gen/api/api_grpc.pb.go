@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApiClient interface {
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageReply, error)
-	JoinRoom(ctx context.Context, in *JoinRoomRequest, opts ...grpc.CallOption) (*JoinRoomReply, error)
+	GetRoomParticipants(ctx context.Context, in *GetRoomParticipantsRequest, opts ...grpc.CallOption) (*GetRoomParticipantsResponse, error)
 }
 
 type apiClient struct {
@@ -39,9 +39,9 @@ func (c *apiClient) SendMessage(ctx context.Context, in *SendMessageRequest, opt
 	return out, nil
 }
 
-func (c *apiClient) JoinRoom(ctx context.Context, in *JoinRoomRequest, opts ...grpc.CallOption) (*JoinRoomReply, error) {
-	out := new(JoinRoomReply)
-	err := c.cc.Invoke(ctx, "/api.Api/JoinRoom", in, out, opts...)
+func (c *apiClient) GetRoomParticipants(ctx context.Context, in *GetRoomParticipantsRequest, opts ...grpc.CallOption) (*GetRoomParticipantsResponse, error) {
+	out := new(GetRoomParticipantsResponse)
+	err := c.cc.Invoke(ctx, "/api.Api/GetRoomParticipants", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (c *apiClient) JoinRoom(ctx context.Context, in *JoinRoomRequest, opts ...g
 // for forward compatibility
 type ApiServer interface {
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageReply, error)
-	JoinRoom(context.Context, *JoinRoomRequest) (*JoinRoomReply, error)
+	GetRoomParticipants(context.Context, *GetRoomParticipantsRequest) (*GetRoomParticipantsResponse, error)
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -64,8 +64,8 @@ type UnimplementedApiServer struct {
 func (UnimplementedApiServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
 }
-func (UnimplementedApiServer) JoinRoom(context.Context, *JoinRoomRequest) (*JoinRoomReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method JoinRoom not implemented")
+func (UnimplementedApiServer) GetRoomParticipants(context.Context, *GetRoomParticipantsRequest) (*GetRoomParticipantsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoomParticipants not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
@@ -98,20 +98,20 @@ func _Api_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Api_JoinRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JoinRoomRequest)
+func _Api_GetRoomParticipants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoomParticipantsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApiServer).JoinRoom(ctx, in)
+		return srv.(ApiServer).GetRoomParticipants(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Api/JoinRoom",
+		FullMethod: "/api.Api/GetRoomParticipants",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApiServer).JoinRoom(ctx, req.(*JoinRoomRequest))
+		return srv.(ApiServer).GetRoomParticipants(ctx, req.(*GetRoomParticipantsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -128,8 +128,8 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Api_SendMessage_Handler,
 		},
 		{
-			MethodName: "JoinRoom",
-			Handler:    _Api_JoinRoom_Handler,
+			MethodName: "GetRoomParticipants",
+			Handler:    _Api_GetRoomParticipants_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
