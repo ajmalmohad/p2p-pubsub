@@ -18,17 +18,13 @@ func (api *ApiServer) SendMessage(ctx context.Context, req *apigen.SendMessageRe
 
 func (api *ApiServer) GetRoomParticipants(ctx context.Context, req *apigen.GetRoomParticipantsRequest) (*apigen.GetRoomParticipantsResponse, error) {
 	var participants []*apigen.RoomParticipant
-	participants = append(participants, &apigen.RoomParticipant{
-		Id:       "1",
-		Nickname: "Ajmal",
-	})
-
-	participants = append(participants, &apigen.RoomParticipant{
-		Id:       "2",
-		Nickname: "Lamja",
-	})
-
-	print(api.cr.ListPeers(), "mypeers")
+	allparts := api.cr.ListPeers()
+	for _, part := range allparts {
+		participants = append(participants, &apigen.RoomParticipant{
+			Id:       part.String(),
+			Nickname: "I don't Know",
+		})
+	}
 
 	return &apigen.GetRoomParticipantsResponse{Participants: participants}, nil
 }
