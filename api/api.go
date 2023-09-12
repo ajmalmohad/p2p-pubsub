@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"log"
 	apigen "lumina/gen/api"
 	chatroom "lumina/room"
 )
@@ -27,6 +28,34 @@ func (api *ApiServer) GetRoomParticipants(ctx context.Context, req *apigen.GetRo
 	}
 
 	return &apigen.GetRoomParticipantsResponse{Participants: participants}, nil
+}
+
+func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apigen.Api_SubscribeEventsServer) error {
+	for {
+		select {
+		// Exit on stream context done
+		case <-stream.Context().Done():
+			return nil
+		case m := <-api.cr.Messages:
+			message := apigen.ChatMessage{
+				SenderId:       m.SenderID,
+				SenderNickname: m.SenderNick,
+				Timestamp:      m.Timestamp,
+				Value:          m.Message,
+			}
+
+			event := apigen.Event{
+				Type:    1,
+				Message: &message,
+			}
+
+			// Send Messages
+			err := stream.Send(&event)
+			if err != nil {
+				log.Println(err.Error())
+			}
+		}
+	}
 }
 
 func NewServer(cr *chatroom.ChatRoom) *ApiServer {

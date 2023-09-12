@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ApiClient interface {
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageReply, error)
 	GetRoomParticipants(ctx context.Context, in *GetRoomParticipantsRequest, opts ...grpc.CallOption) (*GetRoomParticipantsResponse, error)
+	SubscribeEvents(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (Api_SubscribeEventsClient, error)
 }
 
 type apiClient struct {
@@ -48,12 +49,45 @@ func (c *apiClient) GetRoomParticipants(ctx context.Context, in *GetRoomParticip
 	return out, nil
 }
 
+func (c *apiClient) SubscribeEvents(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (Api_SubscribeEventsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Api_ServiceDesc.Streams[0], "/api.Api/SubscribeEvents", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &apiSubscribeEventsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Api_SubscribeEventsClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type apiSubscribeEventsClient struct {
+	grpc.ClientStream
+}
+
+func (x *apiSubscribeEventsClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ApiServer is the server API for Api service.
 // All implementations must embed UnimplementedApiServer
 // for forward compatibility
 type ApiServer interface {
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageReply, error)
 	GetRoomParticipants(context.Context, *GetRoomParticipantsRequest) (*GetRoomParticipantsResponse, error)
+	SubscribeEvents(*SubscribeRequest, Api_SubscribeEventsServer) error
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -66,6 +100,9 @@ func (UnimplementedApiServer) SendMessage(context.Context, *SendMessageRequest) 
 }
 func (UnimplementedApiServer) GetRoomParticipants(context.Context, *GetRoomParticipantsRequest) (*GetRoomParticipantsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRoomParticipants not implemented")
+}
+func (UnimplementedApiServer) SubscribeEvents(*SubscribeRequest, Api_SubscribeEventsServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeEvents not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
@@ -116,6 +153,27 @@ func _Api_GetRoomParticipants_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Api_SubscribeEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SubscribeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApiServer).SubscribeEvents(m, &apiSubscribeEventsServer{stream})
+}
+
+type Api_SubscribeEventsServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type apiSubscribeEventsServer struct {
+	grpc.ServerStream
+}
+
+func (x *apiSubscribeEventsServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Api_ServiceDesc is the grpc.ServiceDesc for Api service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -132,6 +190,12 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Api_GetRoomParticipants_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SubscribeEvents",
+			Handler:       _Api_SubscribeEvents_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "proto/api.proto",
 }

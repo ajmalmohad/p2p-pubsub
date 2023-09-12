@@ -67,8 +67,6 @@ func main() {
 		panic(err)
 	}
 
-	go handleEvents(cr)
-
 	// GRPC Server Starts running here
 	port := *portFlag
 	if len(port) == 0 {
@@ -83,16 +81,6 @@ func main() {
 	apigen.RegisterApiServer(grpcServer, api.NewServer(cr))
 	grpcServer.Serve(lis)
 
-}
-
-func handleEvents(cr *chatroom.ChatRoom) {
-	for {
-		select {
-		case m := <-cr.Messages:
-			// when we receive a message from the chat room, print it to the message window
-			print(fmt.Sprintf("\n%s: %s", m.SenderNick, m.Message))
-		}
-	}
 }
 
 // defaultNick generates a nickname based on the $USER environment variable and
