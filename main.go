@@ -17,6 +17,7 @@ import (
 
 	api "lumina/api"
 	apigen "lumina/gen/api"
+	chatroom "lumina/room"
 )
 
 // DiscoveryInterval is how often we re-publish our mDNS records.
@@ -29,6 +30,7 @@ func main() {
 	// parse some flags to set our nickname and the room to join
 	nickFlag := flag.String("nick", "", "nickname to use in chat. will be generated if empty")
 	roomFlag := flag.String("room", "awesome-chat-room", "name of chat room to join")
+	portFlag := flag.String("port", "3000", "port to open grpc server")
 	flag.Parse()
 
 	ctx := context.Background()
@@ -60,22 +62,20 @@ func main() {
 	room := *roomFlag
 
 	// join the chat room
-	cr, err := JoinChatRoom(ctx, ps, node.ID(), nick, room)
+	cr, err := chatroom.JoinChatRoom(ctx, ps, node.ID(), nick, room)
 	if err != nil {
 		panic(err)
 	}
-
-	print(cr)
 
 	// GRPC Server Starts running here
-	port := 4000
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+	port := *portFlag
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", port))
 	if err != nil {
 		panic(err)
 	}
-	print("\nAPI started in localhost:4000")
+	print("\nAPI started in localhost:", port)
 	grpcServer := grpc.NewServer()
-	apigen.RegisterApiServer(grpcServer, api.NewServer())
+	apigen.RegisterApiServer(grpcServer, api.NewServer(cr))
 	grpcServer.Serve(lis)
 }
 

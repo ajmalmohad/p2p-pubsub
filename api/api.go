@@ -3,10 +3,12 @@ package api
 import (
 	"context"
 	apigen "lumina/gen/api"
+	chatroom "lumina/room"
 )
 
 type ApiServer struct {
 	apigen.UnimplementedApiServer
+	cr *chatroom.ChatRoom
 }
 
 func (api *ApiServer) SendMessage(ctx context.Context, req *apigen.SendMessageRequest) (*apigen.SendMessageReply, error) {
@@ -26,10 +28,12 @@ func (api *ApiServer) GetRoomParticipants(ctx context.Context, req *apigen.GetRo
 		Nickname: "Lamja",
 	})
 
+	print(api.cr.ListPeers(), "mypeers")
+
 	return &apigen.GetRoomParticipantsResponse{Participants: participants}, nil
 }
 
-func NewServer() *ApiServer {
-	s := &ApiServer{}
+func NewServer(cr *chatroom.ChatRoom) *ApiServer {
+	s := &ApiServer{cr: cr}
 	return s
 }
