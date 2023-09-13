@@ -70,11 +70,26 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 			}
 
 			event := apigen.Event{
-				Type: 2,
-				Peer: &peer,
+				Type:     2,
+				PeerJoin: &peer,
 			}
 
 			// Send Peer Join
+			err := stream.Send(&event)
+			if err != nil {
+				log.Println(err.Error())
+			}
+		case m := <-api.cr.PeerLeft:
+			peer := apigen.PeerLeft{
+				PeerId: m.PeerID,
+			}
+
+			event := apigen.Event{
+				Type:     3,
+				PeerLeft: &peer,
+			}
+
+			// Send Peer Left
 			err := stream.Send(&event)
 			if err != nil {
 				log.Println(err.Error())

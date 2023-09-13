@@ -12,7 +12,7 @@ import (
 
 // ChatRoomBufSize is the number of incoming messages to buffer for each topic.
 const ChatRoomBufSize = 128
-const PeerJoinedBufSize = 128
+const PeerEventBufSize = 128
 
 // ChatRoom represents a subscription to a single PubSub topic. Messages
 // can be published to the topic with ChatRoom.Publish, and received
@@ -21,6 +21,7 @@ type ChatRoom struct {
 	// Messages is a channel of messages received from other peers in the chat room
 	Messages chan *ChatMessage
 	PeerJoin chan *PeerJoin
+	PeerLeft chan *PeerLeft
 
 	ctx   context.Context
 	ps    *pubsub.PubSub
@@ -42,6 +43,11 @@ type ChatMessage struct {
 
 // Peer Join.
 type PeerJoin struct {
+	PeerID string
+}
+
+// Peer Left.
+type PeerLeft struct {
 	PeerID string
 }
 
@@ -69,12 +75,40 @@ func JoinChatRoom(ctx context.Context, ps *pubsub.PubSub, selfID peer.ID, nickna
 		nick:     nickname,
 		roomName: roomName,
 		Messages: make(chan *ChatMessage, ChatRoomBufSize),
-		PeerJoin: make(chan *PeerJoin, PeerJoinedBufSize),
+		PeerJoin: make(chan *PeerJoin, PeerEventBufSize),
+		PeerLeft: make(chan *PeerLeft, PeerEventBufSize),
 	}
 
 	// start reading messages from the subscription in a loop
 	go cr.readLoop()
+	go handlePeerEvents(cr)
 	return cr, nil
+}
+
+func handlePeerEvents(cr *ChatRoom) {
+	handler, err := cr.topic.EventHandler()
+	if err != nil {
+		panic(err)
+	}
+
+	for {
+		peerEvt, err := handler.NextPeerEvent(context.Background())
+		if err != nil {
+			print("failed receiving room topic peer event")
+			continue
+		}
+
+		switch peerEvt.Type {
+		case pubsub.PeerLeave:
+			cr.PeerLeft <- &PeerLeft{
+				PeerID: peerEvt.Peer.Pretty(),
+			}
+		case pubsub.PeerJoin:
+			cr.PeerJoin <- &PeerJoin{
+				PeerID: peerEvt.Peer.Pretty(),
+			}
+		}
+	}
 }
 
 // Publish sends a message to the pubsub topic.

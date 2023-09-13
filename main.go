@@ -68,7 +68,7 @@ func main() {
 	}
 
 	// setup local mDNS discovery
-	if err := setupDiscovery(node, cr); err != nil {
+	if err := setupDiscovery(node); err != nil {
 		panic(err)
 	}
 
@@ -114,15 +114,13 @@ func (n *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
 	err := n.h.Connect(context.Background(), pi)
 	if err != nil {
 		fmt.Printf("error connecting to peer %s: %s\n", pi.ID.Pretty(), err)
-	} else {
-		n.cr.PeerJoin <- &chatroom.PeerJoin{PeerID: pi.ID.Pretty()}
 	}
 }
 
 // setupDiscovery creates an mDNS discovery service and attaches it to the libp2p Host.
 // This lets us automatically discover peers on the same LAN and connect to them.
-func setupDiscovery(h host.Host, cr *chatroom.ChatRoom) error {
+func setupDiscovery(h host.Host) error {
 	// setup mDNS discovery to find local peers
-	s := mdns.NewMdnsService(h, DiscoveryServiceTag, &discoveryNotifee{h: h, cr: cr})
+	s := mdns.NewMdnsService(h, DiscoveryServiceTag, &discoveryNotifee{h: h})
 	return s.Start()
 }
