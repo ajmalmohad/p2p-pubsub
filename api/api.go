@@ -17,17 +17,20 @@ func (api *ApiServer) SendMessage(ctx context.Context, req *apigen.SendMessageRe
 	if err != nil {
 		panic(err)
 	}
+	print("Message Sent\n") //
 	return &apigen.SendMessageReply{Success: true}, nil
 }
 
 func (api *ApiServer) GetRoomParticipants(ctx context.Context, req *apigen.GetRoomParticipantsRequest) (*apigen.GetRoomParticipantsResponse, error) {
 	var participants []*apigen.RoomParticipant
 	allparts := api.cr.ListPeers()
+	print("Room Participants: \n") //
 	for _, part := range allparts {
 		participants = append(participants, &apigen.RoomParticipant{
 			Id:       part.String(),
 			Nickname: "I don't Know",
 		})
+		print(participants[len(participants)-1].Id, ": ", participants[len(participants)-1].Nickname, "\n") //
 	}
 
 	return &apigen.GetRoomParticipantsResponse{Participants: participants}, nil
@@ -46,6 +49,8 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 				Value:          m.Message,
 			}
 
+			PrintMessage(&message) //
+
 			event := apigen.Event{
 				Type:    1,
 				Message: &message,
@@ -60,6 +65,9 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 				PeerId: m.PeerID,
 			}
 
+			print("Peer Joined: \n") //
+			print(m.PeerID, "\n")    //
+
 			event := apigen.Event{
 				Type:     2,
 				PeerJoin: &peer,
@@ -73,6 +81,9 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 			peer := apigen.PeerLeft{
 				PeerId: m.PeerID,
 			}
+
+			print("Peer Left: \n") //
+			print(m.PeerID, "\n")  //
 
 			event := apigen.Event{
 				Type:     3,
@@ -90,4 +101,12 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 func NewServer(cr *chatroom.ChatRoom) *ApiServer {
 	s := &ApiServer{cr: cr}
 	return s
+}
+
+func PrintMessage(m *apigen.ChatMessage) {
+	print("Message: \n")
+	print("Sender ID: ", m.SenderId, "\n")
+	print("NickName: ", m.SenderNickname, "\n")
+	print("Timestamp: ", m.Timestamp, "\n")
+	print("Value: ", m.Value, "\n")
 }

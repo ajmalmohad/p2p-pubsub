@@ -25,7 +25,7 @@ const DiscoveryServiceTag = "lumina-pubsub"
 
 func main() {
 	nickFlag := flag.String("nick", "", "nickname to use in chat. will be generated if empty")
-	roomFlag := flag.String("room", "awesome-chat-room", "name of chat room to join")
+	roomFlag := flag.String("room", "lobby", "name of chat room to join")
 	portFlag := flag.String("port", "3000", "port to open grpc server")
 	flag.Parse()
 
@@ -67,7 +67,7 @@ func main() {
 		panic(err)
 	}
 
-	print("API started in localhost:", port)
+	print("API started in localhost:", port, "\n")
 	grpcServer := grpc.NewServer()
 	apigen.RegisterApiServer(grpcServer, api.NewServer(cr))
 	grpcServer.Serve(lis)
@@ -84,7 +84,7 @@ type discoveryNotifee struct {
 }
 
 func (n *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
-	print("\nFound a Peer on the network")
+	print("Found a Peer on the network\n") //
 	err := n.h.Connect(context.Background(), pi)
 	if err != nil {
 		fmt.Printf("error connecting to peer %s: %s\n", pi.ID.Pretty(), err)

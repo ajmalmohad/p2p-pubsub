@@ -106,6 +106,7 @@ func (cr *ChatRoom) Publish(message string) error {
 	if err != nil {
 		return err
 	}
+	print("Your message published\n") //
 	return cr.topic.Publish(cr.ctx, msgBytes)
 }
 
