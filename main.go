@@ -67,7 +67,7 @@ func main() {
 		panic(err)
 	}
 
-	print("\nAPI started in localhost:", port)
+	print("API started in localhost:", port)
 	grpcServer := grpc.NewServer()
 	apigen.RegisterApiServer(grpcServer, api.NewServer(cr))
 	grpcServer.Serve(lis)
@@ -84,6 +84,7 @@ type discoveryNotifee struct {
 }
 
 func (n *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
+	print("\nFound a Peer on the network")
 	err := n.h.Connect(context.Background(), pi)
 	if err != nil {
 		fmt.Printf("error connecting to peer %s: %s\n", pi.ID.Pretty(), err)
