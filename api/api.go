@@ -13,7 +13,10 @@ type ApiServer struct {
 }
 
 func (api *ApiServer) SendMessage(ctx context.Context, req *apigen.SendMessageRequest) (*apigen.SendMessageReply, error) {
-	api.cr.Publish(req.Value)
+	err := api.cr.Publish(req.Value)
+	if err != nil {
+		panic(err)
+	}
 	return &apigen.SendMessageReply{Success: true}, nil
 }
 
@@ -30,20 +33,9 @@ func (api *ApiServer) GetRoomParticipants(ctx context.Context, req *apigen.GetRo
 	return &apigen.GetRoomParticipantsResponse{Participants: participants}, nil
 }
 
-// func (e *PeerJoined) MarshalToProtobuf() *apigen.Event {
-// 	return &apigen.Event{
-// 		Type: apigen.Event_PEER_JOINED,
-// 		PeerJoined: &apigen.EvtPeerJoined{
-// 			RoomName: e.RoomName,
-// 			PeerId:   e.PeerID.Pretty(),
-// 		},
-// 	}
-// }
-
 func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apigen.Api_SubscribeEventsServer) error {
 	for {
 		select {
-		// Exit on stream context done
 		case <-stream.Context().Done():
 			return nil
 		case m := <-api.cr.Messages:
@@ -59,7 +51,6 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 				Message: &message,
 			}
 
-			// Send Messages
 			err := stream.Send(&event)
 			if err != nil {
 				log.Println(err.Error())
@@ -74,7 +65,6 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 				PeerJoin: &peer,
 			}
 
-			// Send Peer Join
 			err := stream.Send(&event)
 			if err != nil {
 				log.Println(err.Error())
@@ -89,7 +79,6 @@ func (api *ApiServer) SubscribeEvents(req *apigen.SubscribeRequest, stream apige
 				PeerLeft: &peer,
 			}
 
-			// Send Peer Left
 			err := stream.Send(&event)
 			if err != nil {
 				log.Println(err.Error())
