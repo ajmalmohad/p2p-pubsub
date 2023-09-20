@@ -1,0 +1,1 @@
+This is a monorepo these projects may or may not depend on each other
