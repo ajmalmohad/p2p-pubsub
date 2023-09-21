@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/main/main.js",
   "scripts": {
+    "dev:vite": "cd src/renderer && npm run dev",
     "dev": "electron .",
     "start": "electron-forge start",
     "package": "electron-forge package",

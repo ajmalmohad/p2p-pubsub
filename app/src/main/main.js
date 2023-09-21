@@ -8,7 +8,7 @@ const createWindow = () => {
         height: 600,
     })
 
-    win.loadFile('src/renderer/index.html')
+    win.loadURL('http://localhost:6969')
 }
 
 app.whenReady().then(() => {
